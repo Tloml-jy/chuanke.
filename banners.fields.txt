@@ -1,0 +1,24 @@
+云开发数据库集合：banners（首页轮播）
+编码：UTF-8
+
+字段说明（可自行扩展，云函数会读取下列核心字段）：
+- imageUrl   string   必填，图片地址（支持 cloud:// 与 https）
+- title      string   主标题，展示在图片左下角
+- subTitle   string   副标题
+- targetType string   跳转类型，见下
+- targetValue string 跳转目标（随 targetType 含义不同）
+- targetPath string   可选，兼容旧逻辑：自定义路径；path 类型也可只用 targetValue
+- sortOrder  number   排序，数字越小越靠前，默认 0
+- enabled    boolean  是否启用，仅 true 会下发
+- startTime  Date|string|null  生效起始时间，空表示不限制开始
+- endTime    Date|string|null  生效结束时间，空表示不限制结束
+
+targetType 枚举建议：
+- none     无跳转
+- product  商品详情，targetValue 为商品 _id
+- service  服务详情，targetValue 为服务 _id
+- shop     店铺主页，targetValue 为 merchantId
+- path     小程序内路径，targetValue 如 /pages/service/list/list（可带 query）
+- webview  外链（需业务侧再接到 web-view 页，当前前端可提示或不处理）
+
+索引建议：enabled + sortOrder（若数据量大再在控制台配置）

@@ -1,0 +1,14 @@
+[
+  {
+    "imageUrl": "cloud://your-env.xxx/banner-demo.jpg",
+    "title": "校园创业节",
+    "subTitle": "创客市集 · 学院认证保障",
+    "targetType": "path",
+    "targetValue": "/pages/product/list/list",
+    "targetPath": "",
+    "sortOrder": 0,
+    "enabled": true,
+    "startTime": null,
+    "endTime": null
+  }
+]

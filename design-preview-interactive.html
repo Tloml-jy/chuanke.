@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>环院创客帮 · 交互式UI预览</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#1a1d23;color:#e0e0e0;overflow:hidden;height:100vh;display:flex}
+:root{--pri:#1E3A5F;--txt:#000;--txt2:#666;--txt3:#999;--bg:#FFF;--card-bg:#F7F7F7;--bo:#E8E8E8;--shadow:0 2px 8px rgba(0,0,0,.03);--star:#f5a623;--danger:#FF3B30;--success:#34C759;--warn:#FF9500}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:#1e2127;border-right:1px solid #2a2d35;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-header{padding:16px 14px 10px;border-bottom:1px solid #2a2d35}
+.sidebar-header h1{font-size:15px;color:#fff;font-weight:700;margin-bottom:2px}
+.sidebar-header p{font-size:10px;color:#888}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.sidebar-nav::-webkit-scrollbar{width:4px}
+.sidebar-nav::-webkit-scrollbar-thumb{background:#3a3d45;border-radius:2px}
+.nav-group{padding:2px 0}
+.nav-group-title{padding:8px 14px 4px;font-size:10px;color:#555;letter-spacing:.5px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:6px;padding:6px 14px;cursor:pointer;font-size:12px;color:#aaa;transition:all .12s;border-left:2px solid transparent}
+.nav-item:hover{background:#262a32;color:#ddd}
+.nav-item.active{background:rgba(30,58,95,.15);color:#5b8cbf;border-left-color:#5b8cbf;font-weight:600}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#23262d;padding:16px;overflow:hidden}
+.viewport-header{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.viewport-title{font-size:13px;color:#ccc;font-weight:600}
+.phone-frame{width:390px;height:852px;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 18px 55px rgba(0,0,0,.5),0 0 0 2px #333,0 0 0 4px #1a1d23;position:relative;flex-shrink:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;background:#FFF}
+.phone-screen::-webkit-scrollbar{width:0}
+
+/* PAGE */
+.page{display:none;background:#FFF;min-height:100%;padding-bottom:72px}
+.page.active{display:block}
+.page.no-tabbar{padding-bottom:0}
+
+/* STATUS BAR */
+.status-bar{position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:10px 22px 6px;background:inherit;font-size:11px;font-weight:600;color:#111;pointer-events:none}
+
+/* TOP NAV */
+.topnav{position:sticky;top:0;z-index:99;background:#fff;border-bottom:1px solid #E8E8E8}
+.topnav-row{display:flex;align-items:center;padding:0 16px;height:44px;gap:10px}
+.topnav-title{flex:1;font-size:16px;font-weight:700;color:#000;text-align:center}
+.topnav-back{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#333;cursor:pointer;flex-shrink:0}
+.topnav-back svg{width:20px;height:20px}
+.topnav-action{font-size:13px;color:#1E3A5F;font-weight:500;cursor:pointer;flex-shrink:0;padding:4px 6px;display:flex;align-items:center;gap:4px}
+
+/* SEARCH */
+.search-box{margin:0;padding:8px 16px;background:#fff}
+.search-input{height:44px;background:#F7F7F7;display:flex;align-items:center;padding:0 14px;gap:8px;font-size:14px;color:#999;width:100%}
+.search-input svg{flex-shrink:0}
+
+/* CONTENT */
+.content{padding:12px 16px}
+.sec-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px}
+.sec-title{font-size:18px;font-weight:700;color:#000}
+.sec-more{font-size:14px;color:#1E3A5F;font-weight:500;cursor:pointer}
+
+/* BANNER */
+.banner{margin:0 16px 12px;height:180px;background:#F8F9FA;display:flex;align-items:center;padding:0 24px;position:relative;overflow:hidden}
+.banner-left{flex:1;z-index:1}
+.banner-title{font-size:28px;font-weight:700;color:#000;line-height:1.2}
+.banner-sub{font-size:14px;color:#666;margin-top:8px}
+.banner-line{width:20px;height:2px;background:#1E3A5F;margin-top:10px}
+.banner-right{width:100px;height:100px;border:2px solid #1E3A5F;transform:rotate(15deg);display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.6}
+.banner-right svg{width:50px;height:50px;color:#1E3A5F}
+.banner-diag{position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:#fff;transform:rotate(-25deg);opacity:.3}
+
+/* NOTICE BAR */
+.notice-bar{margin:8px 16px;height:44px;background:#fff;border:1px solid #E8E8E8;display:flex;align-items:center;padding:0 12px;gap:10px}
+.notice-dot{width:3px;height:18px;background:#1E3A5F;flex-shrink:0}
+.notice-text{flex:1;font-size:14px;color:#000;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.notice-date{font-size:12px;color:#999;flex-shrink:0}
+
+/* SHOP CARDS */
+.shop-scroll{display:flex;gap:12px;padding:0 16px;overflow-x:auto}
+.shop-scroll::-webkit-scrollbar{display:none}
+.shop-card{width:100px;background:#fff;border:1px solid #E8E8E8;padding:0 0 6px;flex-shrink:0;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.shop-card-img{width:48px;height:48px;background:#F7F7F7;margin:16px auto 8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#1E3A5F}
+.shop-card-name{font-size:13px;color:#000;font-weight:500;margin-bottom:2px}
+.shop-card-star{font-size:12px;color:#1E3A5F}
+.shop-card-desc{font-size:11px;color:#999;margin-top:1px}
+.shop-card-line{width:26px;height:2px;background:#1E3A5F;margin:4px auto 0}
+
+/* FEATURED SHOP */
+.feat-shop{padding:0 16px;display:flex;flex-direction:column;gap:10px}
+.feat-card{background:#fff;border:1px solid #E8E8E8;padding:12px;display:flex;align-items:center;gap:12px;height:76px;box-shadow:0 2px 8px rgba(0,0,0,.03);cursor:pointer}
+.feat-img{width:44px;height:44px;background:#F7F7F7;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feat-img svg{width:24px;height:24px;color:#1E3A5F}
+.feat-info{flex:1;min-width:0}
+.feat-name{font-size:14px;color:#000;font-weight:500}
+.feat-desc{font-size:12px;color:#999;margin-top:2px}
+.feat-star{font-size:12px;color:#1E3A5F;flex-shrink:0}
+
+/* RECOMMEND LIST */
+.rec-list{padding:0}
+.rec-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #F7F7F7;cursor:pointer}
+.rec-item:active{background:#fafafa}
+.rec-img{width:52px;height:52px;background:#F7F7F7;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.rec-img svg{width:28px;height:28px;color:#1E3A5F}
+.rec-info{flex:1;min-width:0}
+.rec-name{font-size:15px;color:#000;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rec-shop{font-size:12px;color:#999;margin-top:3px}
+.rec-price{font-size:18px;font-weight:700;color:#1E3A5F;flex-shrink:0}
+
+/* TAB SCROLL */
+.tab-scroll{display:flex;gap:0;padding:0;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #E8E8E8}
+.tab-scroll::-webkit-scrollbar{display:none}
+.tab-chip{padding:10px 16px;font-size:14px;background:transparent;color:#666;cursor:pointer;flex-shrink:0;border:none;border-bottom:2px solid transparent;transition:all .15s;outline:none}
+.tab-chip.active{color:#1E3A5F;font-weight:700;border-bottom-color:#1E3A5F}
+.tab-btn{font-size:13px;padding:8px 18px;background:#fff;color:#666;cursor:pointer;border:1px solid #E8E8E8;margin:0}
+.tab-btn.active{color:#fff;background:#1E3A5F;border-color:#1E3A5F}
+
+/* GOODS GRID */
+.goods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
+.goods-card{background:#fff;border:1px solid #E8E8E8;box-shadow:0 2px 8px rgba(0,0,0,.03);cursor:pointer;overflow:hidden}
+.goods-card:active{opacity:.9}
+.goods-img{width:100%;aspect-ratio:1;background:#f5f6f8;display:flex;align-items:center;justify-content:center}
+.goods-img svg{width:48px;height:48px;color:#1E3A5F;opacity:.4}
+.goods-body{padding:10px 12px 12px}
+.goods-title{font-size:14px;color:#000;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:4px}
+.goods-shop{font-size:12px;color:#999;margin-bottom:6px}
+.goods-price-row{display:flex;justify-content:space-between;align-items:flex-end}
+.goods-price{font-size:18px;font-weight:700;color:#1E3A5F}
+.goods-sold{font-size:12px;color:#999}
+
+/* CARD */
+.card{background:#fff;padding:16px;margin-bottom:0;border:1px solid #E8E8E8;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.card+.card{margin-top:8px}
+
+/* ORDER CARD */
+.oc{background:#fff;padding:12px;border:1px solid #E8E8E8;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.oc+.oc{margin-top:8px}
+.oc-shop{font-size:15px;font-weight:700;color:#000;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.oc-status{font-size:11px;font-weight:500;padding:2px 8px}
+.oc-status.pending{color:#FF9500;background:rgba(255,149,0,.08)}
+.oc-status.paid{color:#1E3A5F;background:rgba(30,58,95,.08)}
+.oc-status.done{color:#34C759;background:rgba(52,199,89,.08)}
+.oc-status.cancel{color:#999;background:#F7F7F7}
+.oc-body{display:flex;gap:10px}
+.oc-thumb{width:60px;height:60px;background:#f5f6f8;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.oc-thumb svg{width:30px;height:30px;color:#1E3A5F;opacity:.4}
+.oc-info{flex:1;min-width:0}
+.oc-name{font-size:14px;color:#000;line-height:1.3;margin-bottom:3px}
+.oc-meta{font-size:12px;color:#999}
+.oc-price-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.oc-price{font-size:15px;font-weight:700;color:#000}
+.oc-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0}
+
+/* BUTTONS */
+.btn{height:36px;border-radius:2px;font-size:13px;font-weight:600;padding:0 20px;cursor:pointer;border:none;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;outline:none}
+.btn:active{opacity:.85}
+.btn-sm{height:28px;font-size:11px;padding:0 14px}
+.btn-lg{height:44px;font-size:15px}
+.btn-pri{background:#1E3A5F;color:#fff}
+.btn-light{background:#fff;color:#1E3A5F;border:1px solid #1E3A5F}
+.btn-out{background:#fff;color:#666;border:1px solid #E8E8E8}
+.btn-block{width:100%}
+
+/* BOTTOM BAR */
+.bbar{position:sticky;bottom:0;background:#fff;padding:12px 16px;border-top:1px solid #E8E8E8;display:flex;align-items:center;gap:12px;z-index:50}
+.bbar .pi{flex:1}
+.bbar .pi-lbl{font-size:10px;color:#999}
+.bbar .pi-val{font-size:18px;font-weight:700;color:#1E3A5F}
+
+/* TABBAR */
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:72px;background:#fff;border-top:1px solid #E8E8E8;display:flex;align-items:center;z-index:100}
+.tabbar-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:100%;cursor:pointer;transition:all .15s}
+.tabbar-icon{font-size:20px;color:#999}
+.tabbar-icon svg{width:22px;height:22px}
+.tabbar-text{font-size:10px;color:#999}
+.tabbar-item.active .tabbar-icon,.tabbar-item.active .tabbar-text{color:#1E3A5F;font-weight:700}
+
+/* DETAIL PAGES */
+.detail-hero{width:100%;height:280px;background:#f5f6f8;display:flex;align-items:center;justify-content:center}
+.detail-hero svg{width:80px;height:80px;color:#1E3A5F;opacity:.3}
+.detail-info{padding:16px}
+.detail-price{font-size:24px;font-weight:700;color:#1E3A5F;margin-bottom:6px}
+.detail-name{font-size:18px;font-weight:700;color:#000;margin-bottom:4px}
+.detail-sold{font-size:14px;color:#999}
+.detail-shop-row{display:flex;align-items:center;gap:10px;padding:14px 16px;border-top:1px solid #F7F7F7;border-bottom:1px solid #F7F7F7;margin:0}
+.detail-shop-logo{width:36px;height:36px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#1E3A5F;flex-shrink:0}
+.detail-shop-name{flex:1;font-size:16px;color:#000;font-weight:500}
+.detail-shop-badge{font-size:10px;color:#1E3A5F;border:1px solid #1E3A5F;padding:2px 6px}
+.detail-shop-btn{font-size:12px;color:#1E3A5F;border:1px solid #1E3A5F;padding:5px 14px;cursor:pointer}
+
+/* TAGS */
+.tag-row{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px}
+.tag{font-size:10px;color:#666;background:#F7F7F7;padding:4px 10px}
+
+/* SPEC OVERLAY */
+.overlay-mask{position:absolute;inset:0;background:rgba(0,0,0,.48);z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.overlay-panel{width:100%;background:#fff;padding:20px 16px 28px;max-height:70vh;overflow-y:auto}
+.overlay-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.overlay-head-title{font-size:16px;font-weight:700;color:#000}
+.overlay-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#999;cursor:pointer}
+.spec-group{margin-bottom:14px}
+.spec-group-label{font-size:13px;color:#666;margin-bottom:8px}
+.spec-options{display:flex;flex-wrap:wrap;gap:10px}
+.spec-btn{padding:8px 18px;font-size:13px;color:#666;background:#fff;border:1px solid #E8E8E8;cursor:pointer}
+.spec-btn.selected{border-color:#1E3A5F;color:#1E3A5F;font-weight:600}
+
+/* DATEPICKER */
+.date-scroll{display:flex;gap:8px;padding:0 16px;overflow-x:auto}
+.date-scroll::-webkit-scrollbar{display:none}
+.date-item{width:50px;height:40px;background:#fff;border:1px solid #E8E8E8;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:#666;cursor:pointer}
+.date-item.active{background:#1E3A5F;color:#fff;border-color:#1E3A5F}
+.date-item .day{font-size:15px;font-weight:600}
+.date-item .wk{font-size:10px}
+
+/* TIME SLOTS */
+.time-slots{display:flex;flex-wrap:wrap;gap:10px;padding:0 16px}
+.time-slot{padding:8px 18px;font-size:13px;color:#666;background:#fff;border:1px solid #E8E8E8;cursor:pointer}
+.time-slot.selected{background:#1E3A5F;color:#fff;border-color:#1E3A5F}
+
+/* SHOP PAGE */
+.shop-banner{width:100%;height:180px;background:linear-gradient(135deg,#1E3A5F 0%,#2a5080 100%);display:flex;align-items:center;justify-content:center}
+.shop-banner svg{width:60px;height:60px;color:rgba(255,255,255,.3)}
+.shop-info-card{padding:16px;background:#fff;margin:-20px 16px 0;position:relative;z-index:1;border:1px solid #E8E8E8;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.shop-info-row{display:flex;align-items:center;gap:12px}
+.shop-logo-lg{width:60px;height:60px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#1E3A5F;flex-shrink:0;border:2px solid #fff;margin-top:-46px}
+.shop-info-mid{flex:1;min-width:0}
+.shop-name-lg{font-size:16px;font-weight:700;color:#000}
+.shop-stats{font-size:12px;color:#999;margin-top:3px;display:flex;gap:12px}
+.shop-bio{font-size:13px;color:#666;line-height:1.5;margin-top:10px}
+.shop-follow-btn{margin-top:12px}
+
+/* CONFIRM PAGE */
+.co-card{background:#fff;padding:12px;border:1px solid #E8E8E8;margin:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.co-row{display:flex;gap:10px}
+.co-thumb{width:80px;height:80px;background:#f5f6f8;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.co-thumb svg{width:40px;height:40px;color:#1E3A5F;opacity:.3}
+.co-info{flex:1}
+.co-name{font-size:14px;color:#000;margin-bottom:4px}
+.co-spec{font-size:12px;color:#999;margin-bottom:6px}
+.co-price{font-size:17px;font-weight:700;color:#1E3A5F}
+.co-qty{display:flex;align-items:center;gap:10px;margin-top:8px}
+.co-qty-btn{width:28px;height:28px;border:1px solid #E8E8E8;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666;cursor:pointer}
+.co-qty-num{font-size:15px;color:#000;min-width:24px;text-align:center}
+.co-section{margin:0 16px 12px}
+.co-section-title{font-size:14px;font-weight:700;color:#000;margin-bottom:8px}
+.co-addr{font-size:13px;color:#666;line-height:1.5}
+.co-total{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.co-total-label{font-size:14px;color:#000}
+.co-total-val{font-size:18px;font-weight:700;color:#1E3A5F}
+
+/* ORDER DETAIL */
+.od-header{text-align:center;padding:28px 16px 20px}
+.od-header-icon{font-size:40px;margin-bottom:8px}
+.od-header-text{font-size:17px;font-weight:700;color:#1E3A5F}
+.od-header-sub{font-size:13px;color:#666;margin-top:4px}
+.od-code{background:#fff;margin:0 16px;padding:16px;text-align:center;border:1px solid #E8E8E8}
+.od-code-num{font-size:20px;font-weight:700;color:#000;letter-spacing:4px}
+.od-code-hint{font-size:12px;color:#999;margin-top:4px}
+.od-info{background:#fff;margin:0 16px;padding:14px 16px;border:1px solid #E8E8E8}
+.od-info-row{display:flex;font-size:13px;color:#666;padding:4px 0}
+.od-info-row .lbl{flex-shrink:0;margin-right:12px}
+
+/* PROFILE */
+.pf-header{padding:20px 16px;display:flex;align-items:center;gap:14px;background:#fff}
+.pf-avatar{width:60px;height:60px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#1E3A5F;flex-shrink:0}
+.pf-info{flex:1}
+.pf-name{font-size:17px;font-weight:700;color:#000}
+.pf-badge{display:inline-block;font-size:10px;color:#1E3A5F;border:1px solid #1E3A5F;padding:2px 8px;border-radius:10px;margin-left:6px}
+.pf-stats{display:grid;grid-template-columns:1fr 1fr 1fr;margin:12px 16px;gap:1px;background:#E8E8E8}
+.pf-stat{background:#fff;text-align:center;padding:14px 8px}
+.pf-stat-val{font-size:17px;font-weight:700;color:#000}
+.pf-stat-lbl{font-size:11px;color:#999;margin-top:2px}
+.pf-order-entry{display:flex;justify-content:space-around;padding:16px;background:#fff;margin:0 16px;border:1px solid #E8E8E8}
+.pf-order-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#666;cursor:pointer}
+.pf-order-item svg{width:24px;height:24px;color:#666}
+.pf-menu{margin:12px 16px;background:#fff;border:1px solid #E8E8E8}
+.pf-menu-item{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #F7F7F7;cursor:pointer}
+.pf-menu-item:last-child{border-bottom:none}
+.pf-menu-item svg{width:20px;height:20px;color:#1E3A5F;margin-right:12px}
+.pf-menu-item .label{flex:1;font-size:14px;color:#000}
+.pf-menu-item .arrow{font-size:16px;color:#ccc}
+.pf-logout{text-align:center;padding:20px;font-size:13px;color:#FF3B30;cursor:pointer}
+
+/* MSG */
+.msg-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #F0F0F0;cursor:pointer}
+.msg-avatar{width:48px;height:48px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#1E3A5F;flex-shrink:0}
+.msg-info{flex:1;min-width:0}
+.msg-name{font-size:14px;font-weight:700;color:#000}
+.msg-preview{font-size:12px;color:#999;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.msg-right{text-align:right;flex-shrink:0}
+.msg-time{font-size:11px;color:#999}
+.msg-badge{display:inline-block;width:8px;height:8px;background:#FF3B30;border-radius:50%;margin-top:4px}
+
+/* CHAT */
+.chat-area{padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-time-label{text-align:center;font-size:11px;color:#999;padding:8px 0}
+.chat-bubble{max-width:75%;padding:10px 14px;font-size:14px;line-height:1.5}
+.chat-bubble.other{background:#fff;color:#000;border:1px solid #E8E8E8;align-self:flex-start}
+.chat-bubble.self{background:#1E3A5F;color:#fff;align-self:flex-end}
+.chat-input-row{display:flex;gap:10px;padding:10px 16px;border-top:1px solid #E8E8E8;background:#fff;align-items:center}
+.chat-input{flex:1;height:40px;background:#F7F7F7;border:none;padding:0 14px;font-size:14px;outline:none}
+.chat-send-btn{height:40px;padding:0 20px;background:#1E3A5F;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer}
+
+/* LOGIN */
+.login-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:40px 32px;text-align:center}
+.login-logo{width:80px;height:80px;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#1E3A5F;margin-bottom:16px}
+.login-title{font-size:22px;font-weight:700;color:#000;margin-bottom:30px}
+.login-illus{width:150px;height:150px;background:#F8F9FA;margin-bottom:30px;display:flex;align-items:center;justify-content:center}
+.login-illus svg{width:80px;height:80px;color:#1E3A5F;opacity:.3}
+.login-btn{width:100%;height:48px;background:#1E3A5F;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px}
+.login-privacy{font-size:11px;color:#999}
+
+/* REVIEW */
+.review-product{display:flex;align-items:center;gap:10px;padding:16px;background:#fff}
+.review-product-img{width:60px;height:60px;background:#F7F7F7;flex-shrink:0}
+.review-product-name{font-size:14px;color:#000}
+.review-stars{display:flex;gap:6px;padding:16px;justify-content:center}
+.review-star{font-size:28px;color:#E8E8E8;cursor:pointer;transition:color .15s}
+.review-star.on{color:#f5a623}
+.review-textarea{width:calc(100% - 32px);height:100px;background:#F7F7F7;border:none;padding:14px;font-size:14px;resize:none;outline:none;margin:0 16px;font-family:inherit}
+.review-textarea::placeholder{color:#999;font-size:13px}
+.review-upload{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px}
+.review-upload-box{aspect-ratio:1;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:28px;color:#ccc;cursor:pointer}
+.review-anon{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;font-size:14px;color:#000}
+.review-anon .toggle{width:48px;height:26px;background:#E8E8E8;border-radius:13px;cursor:pointer;position:relative}
+.review-anon .toggle.on{background:#1E3A5F}
+.review-anon .toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:all .2s}
+.review-anon .toggle.on::after{left:24px}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:#999;font-size:14px}
+.empty-state svg{width:64px;height:64px;color:#E8E8E8;margin-bottom:12px}
+
+/* UTILS */
+.text-center{text-align:center}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+.mb12{margin-bottom:12px}
+.mr8{margin-right:8px}
+.gap8{gap:8px}
+.gap12{gap:12px}
+.flex{display:flex}
+.flex-center{align-items:center}
+.flex-between{justify-content:space-between}
+.p16{padding:16px}
+.bg-white{background:#fff}
+.section-divider{height:8px;background:#F7F7F7}
+.heart-icon{color:#FF3B30;cursor:pointer}
+.heart-fill{fill:#FF3B30}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<div class="sidebar-header">
+<h1>环院创客帮</h1>
+<p>UI 设计预览 · 20 页</p>
+</div>
+<div class="sidebar-nav">
+<div class="nav-group">
+<div class="nav-group-title">核心页面</div>
+<div class="nav-item active" data-page="index">🏠 首页</div>
+<div class="nav-item" data-page="product-list">🛍️ 商品列表</div>
+<div class="nav-item" data-page="product-detail">📦 商品详情</div>
+<div class="nav-item" data-page="service-list">💼 服务列表</div>
+<div class="nav-item" data-page="service-detail">📋 服务详情</div>
+<div class="nav-item" data-page="shop-detail">🏪 店铺详情</div>
+</div>
+<div class="nav-group">
+<div class="nav-group-title">交易流程</div>
+<div class="nav-item" data-page="order-confirm">✅ 订单确认</div>
+<div class="nav-item" data-page="order-list">📋 订单列表</div>
+<div class="nav-item" data-page="order-detail">📄 订单详情</div>
+<div class="nav-item" data-page="booking-confirm">📅 预约确认</div>
+<div class="nav-item" data-page="booking-list">📆 预约列表</div>
+<div class="nav-item" data-page="booking-detail">📝 预约详情</div>
+</div>
+<div class="nav-group">
+<div class="nav-group-title">用户与社交</div>
+<div class="nav-item" data-page="profile">👤 个人中心</div>
+<div class="nav-item" data-page="login">🔐 登录页</div>
+<div class="nav-item" data-page="search">🔍 搜索页</div>
+<div class="nav-item" data-page="message-list">💬 消息列表</div>
+<div class="nav-item" data-page="chat">💭 聊天对话</div>
+<div class="nav-item" data-page="review-submit">⭐ 评价提交</div>
+<div class="nav-item" data-page="favorites">❤️ 收藏页</div>
+<div class="nav-item" data-page="follows">👥 关注页</div>
+</div>
+</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+<div class="viewport-header">
+<div class="viewport-title" id="viewportTitle">首页</div>
+</div>
+<div class="phone-frame">
+<div class="phone-screen" id="phoneScreen">
+
+<!-- ================================================================ -->
+<!-- PAGE 1: 首页 -->
+<!-- ================================================================ -->
+<div class="page active" id="page-index">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div style="background:#fff;padding:10px 16px 8px;display:flex;justify-content:space-between;align-items:center;height:48px">
+<span style="font-size:20px;font-weight:700;color:#000">创客优选</span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+</div>
+<div class="search-box">
+<div class="search-input">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+<span>搜校园服务或商品</span>
+</div>
+</div>
+<div class="banner">
+<div class="banner-left">
+<div class="banner-title">五一狂欢季</div>
+<div class="banner-sub">校园服务&商品特惠</div>
+<div class="banner-line"></div>
+</div>
+<div class="banner-right">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+</div>
+<div class="banner-diag"></div>
+</div>
+<div class="notice-bar">
+<div class="notice-dot"></div>
+<div class="notice-text">活动招募：创客市集摊主征集开启</div>
+<div class="notice-date">04-08</div>
+</div>
+<div class="sec-head">
+<span class="sec-title">按店铺逛</span>
+<span class="sec-more">更多 &gt;</span>
+</div>
+<div class="shop-scroll">
+<div class="shop-card"><div class="shop-card-img">嘉</div><div class="shop-card-name">嘉豪·电脑维修</div><div class="shop-card-star">★ 5.0</div><div class="shop-card-desc">专业维修服务</div><div class="shop-card-line"></div></div>
+<div class="shop-card"><div class="shop-card-img">老</div><div class="shop-card-name">老段·数据恢复</div><div class="shop-card-star">★ 5.0</div><div class="shop-card-desc">数据安全保障</div><div class="shop-card-line"></div></div>
+<div class="shop-card"><div class="shop-card-img">随</div><div class="shop-card-name">随便·数码配件</div><div class="shop-card-star">★ 5.0</div><div class="shop-card-desc">品质数码配件</div><div class="shop-card-line"></div></div>
+</div>
+<div class="sec-head">
+<span class="sec-title">精选店铺</span>
+<span class="sec-more">更多 &gt;</span>
+</div>
+<div class="feat-shop">
+<div class="feat-card">
+<div class="feat-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
+<div class="feat-info"><div class="feat-name">数码配件专营</div><div class="feat-desc">手机配件·电脑周边</div></div>
+<div class="feat-star">★ 5.0</div>
+</div>
+<div class="feat-card">
+<div class="feat-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4z"/></svg></div>
+<div class="feat-info"><div class="feat-name">生活好物馆</div><div class="feat-desc">日用百货·文创周边</div></div>
+<div class="feat-star">★ 4.9</div>
+</div>
+</div>
+<div class="sec-head">
+<span class="sec-title">为你推荐</span>
+<span class="sec-more">换一批</span>
+</div>
+<div class="rec-list">
+<div class="rec-item">
+<div class="rec-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
+<div class="rec-info"><div class="rec-name">笔记本电脑清灰服务</div><div class="rec-shop">老段工作室</div></div>
+<div class="rec-price">¥50</div>
+</div>
+<div class="rec-item">
+<div class="rec-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div>
+<div class="rec-info"><div class="rec-name">手机贴膜专业服务</div><div class="rec-shop">嘉豪数码</div></div>
+<div class="rec-price">¥30</div>
+</div>
+<div class="rec-item">
+<div class="rec-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
+<div class="rec-info"><div class="rec-name">电脑系统重装优化</div><div class="rec-shop">随便科技</div></div>
+<div class="rec-price">¥80</div>
+</div>
+<div class="rec-item">
+<div class="rec-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+<div class="rec-info"><div class="rec-name">数据恢复专业服务</div><div class="rec-shop">老段工作室</div></div>
+<div class="rec-price">¥120</div>
+</div>
+<div class="rec-item">
+<div class="rec-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+<div class="rec-info"><div class="rec-name">办公软件安装调试</div><div class="rec-shop">嘉豪数码</div></div>
+<div class="rec-price">¥40</div>
+</div>
+</div>
+<div style="height:16px"></div>
+<div class="tabbar">
+<div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div>
+<div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div>
+<div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div>
+<div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">消息</div></div>
+<div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div>
+</div>
+</div>
+<!-- PAGE 2: 商品列表页 -->
+<div class="page" id="page-product-list">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-title">商城</span><div class="topnav-action"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div></div></div>
+<div class="search-box"><div class="search-input"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>搜校园服务或商品</span></div></div>
+<div class="tab-scroll"><button class="tab-chip active">全部</button><button class="tab-chip">电脑维修</button><button class="tab-chip">数码配件</button><button class="tab-chip">办公服务</button><button class="tab-chip">生活服务</button></div>
+<div class="goods-grid">
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="goods-body"><div class="goods-title">笔记本电脑清灰服务</div><div class="goods-shop">老段工作室</div><div class="goods-price-row"><span class="goods-price">¥50</span><span class="goods-sold">已售128</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="goods-body"><div class="goods-title">手机贴膜专业服务</div><div class="goods-shop">嘉豪数码</div><div class="goods-price-row"><span class="goods-price">¥30</span><span class="goods-sold">已售56</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="goods-body"><div class="goods-title">电脑系统重装优化</div><div class="goods-shop">随便科技</div><div class="goods-price-row"><span class="goods-price">¥80</span><span class="goods-sold">已售32</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="goods-body"><div class="goods-title">数据恢复专业服务</div><div class="goods-shop">老段工作室</div><div class="goods-price-row"><span class="goods-price">¥120</span><span class="goods-sold">已售89</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="goods-body"><div class="goods-title">办公软件安装调试</div><div class="goods-shop">嘉豪数码</div><div class="goods-price-row"><span class="goods-price">¥40</span><span class="goods-sold">已售15</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4z"/></svg></div><div class="goods-body"><div class="goods-title">校园文创马克杯</div><div class="goods-shop">随便科技</div><div class="goods-price-row"><span class="goods-price">¥38.80</span><span class="goods-sold">已售203</span></div></div></div>
+</div>
+<div class="tabbar"><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div><div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">商城</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div></div>
+</div>
+<!-- PAGE 3: 商品详情页 -->
+<div class="page no-tabbar" id="page-product-detail">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">笔记本电脑清灰服务</span><div class="topnav-action"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg></div></div></div>
+<div class="detail-hero"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
+<div class="detail-info"><div class="detail-price">¥50</div><div class="detail-name">笔记本电脑清灰服务</div><div class="detail-sold">已售 128 · 老段工作室</div></div>
+<div class="detail-shop-row"><div class="detail-shop-logo">老</div><span class="detail-shop-name">老段工作室</span><span class="detail-shop-badge">认证商户</span><span class="detail-shop-btn">进店</span></div>
+<div class="tag-row"><span class="tag">到店服务</span><span class="tag">专业清灰</span><span class="tag">30分钟</span><span class="tag">质保30天</span></div>
+<div style="padding: 0 16px; margin-top: 12px;"><div style="font-size:14px;font-weight:700;color:#000;margin-bottom:8px">选择规格</div><div class="spec-options"><span class="spec-btn selected">标准清灰</span><span class="spec-btn">深度清灰 +¥20</span><span class="spec-btn">含硅脂更换 +¥15</span></div></div>
+<div class="section-divider"></div>
+<div class="bbar"><div style="cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div><button class="btn btn-light btn-lg" style="flex:1">加入购物车</button><button class="btn btn-pri btn-lg" style="flex:1">立即购买</button></div>
+</div>
+<!-- PAGE 4: 服务列表页 -->
+<div class="page" id="page-service-list">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-title">服务</span></div></div>
+<div class="search-box"><div class="search-input"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>搜校园服务或商品</span></div></div>
+<div class="tab-scroll"><button class="tab-chip active">全部</button><button class="tab-chip">电脑维修</button><button class="tab-chip">数码配件</button><button class="tab-chip">办公服务</button><button class="tab-chip">生活服务</button></div>
+<div class="goods-grid"><div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="goods-body"><div class="goods-title">笔记本电脑清灰</div><div style="font-size:12px;color:#999">约30分钟</div><div class="goods-price-row" style="margin-top:4px"><span class="goods-price">¥50</span><span class="goods-sold">老段工作室</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="goods-body"><div class="goods-title">数据恢复</div><div style="font-size:12px;color:#999">约2小时</div><div class="goods-price-row" style="margin-top:4px"><span class="goods-price">¥120</span><span class="goods-sold">老段工作室</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="goods-body"><div class="goods-title">手机贴膜</div><div style="font-size:12px;color:#999">约15分钟</div><div class="goods-price-row" style="margin-top:4px"><span class="goods-price">¥30</span><span class="goods-sold">嘉豪数码</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="goods-body"><div class="goods-title">系统重装</div><div style="font-size:12px;color:#999">约1小时</div><div class="goods-price-row" style="margin-top:4px"><span class="goods-price">¥80</span><span class="goods-sold">随便科技</span></div></div></div>
+</div>
+<div class="tabbar"><div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">消息</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div></div>
+</div>
+<!-- PAGE 5: 服务详情页 -->
+<div class="page no-tabbar" id="page-service-detail">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">服务详情</span><div class="topnav-action"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg></div></div></div>
+<div class="detail-hero"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+<div class="detail-info"><div class="detail-name">数据恢复专业服务</div><div class="detail-price">¥120</div><div style="font-size:14px;color:#999;margin-top:4px">⏱ 约2小时</div></div>
+<div class="detail-shop-row"><div class="detail-shop-logo">老</div><span class="detail-shop-name">老段工作室</span><span class="detail-shop-badge">认证商户</span><span class="detail-shop-btn">进店</span></div>
+<div class="section-divider"></div>
+<div style="padding:14px 16px"><div style="font-size:15px;font-weight:700;color:#000;margin-bottom:10px">选择预约日期</div>
+<div class="date-scroll"><div class="date-item active"><span class="day">5</span><span class="wk">周一</span></div><div class="date-item"><span class="day">6</span><span class="wk">周二</span></div><div class="date-item"><span class="day">7</span><span class="wk">周三</span></div><div class="date-item"><span class="day">8</span><span class="wk">周四</span></div><div class="date-item"><span class="day">9</span><span class="wk">周五</span></div><div class="date-item"><span class="day">10</span><span class="wk">周六</span></div><div class="date-item"><span class="day">11</span><span class="wk">周日</span></div></div></div>
+<div style="padding:14px 16px"><div style="font-size:15px;font-weight:700;color:#000;margin-bottom:10px">选择时段</div>
+<div class="time-slots"><span class="time-slot selected">09:00-10:00</span><span class="time-slot">10:00-11:00</span><span class="time-slot">11:00-12:00</span><span class="time-slot">14:00-15:00</span><span class="time-slot">15:00-16:00</span><span class="time-slot">16:00-17:00</span></div></div>
+<div class="section-divider"></div>
+<div class="bbar"><div class="pi"><div class="pi-lbl">合计</div><div class="pi-val">¥120</div></div><button class="btn btn-pri btn-lg" style="flex:1">立即预约</button></div>
+</div>
+<!-- PAGE 6: 店铺详情页 -->
+<div class="page no-tabbar" id="page-shop-detail">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">店铺详情</span></div></div>
+<div class="shop-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4z"/></svg></div>
+<div class="shop-info-card"><div class="shop-info-row"><div class="shop-logo-lg">老</div><div class="shop-info-mid"><div class="shop-name-lg">老段工作室 <span class="detail-shop-badge" style="margin-left:4px">认证</span></div><div class="shop-stats"><span>★ 5.0</span><span>粉丝 326</span></div></div></div><div class="shop-bio">专注校园电脑维修与数据恢复服务，10年技术经验，为每一位同学的数据安全保驾护航。</div><div class="shop-follow-btn"><button class="btn btn-pri btn-block btn-sm">关注</button></div></div>
+<div class="sec-head"><span class="sec-title">全部商品</span></div>
+<div class="goods-grid"><div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="goods-body"><div class="goods-title">笔记本电脑清灰</div><div class="goods-price-row"><span class="goods-price">¥50</span><span class="goods-sold">已售128</span></div></div></div>
+<div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="goods-body"><div class="goods-title">数据恢复服务</div><div class="goods-price-row"><span class="goods-price">¥120</span><span class="goods-sold">已售89</span></div></div></div>
+</div>
+<div style="height:24px"></div>
+</div>
+<!-- PAGE 7: 订单确认页 -->
+<div class="page no-tabbar" id="page-order-confirm">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">确认订单</span></div></div>
+<div class="co-card"><div class="co-row"><div class="co-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="co-info"><div class="co-name">手机贴膜专业服务</div><div class="co-spec">规格：高清钢化膜</div><div class="co-price">¥30</div><div class="co-qty"><div class="co-qty-btn">−</div><div class="co-qty-num">1</div><div class="co-qty-btn">+</div></div></div></div></div>
+<div class="co-section"><div class="co-section-title">提货方式</div><div class="co-addr">📍 到店自提<br><span style="font-size:12px;color:#999">嘉豪数码 · 校园创业中心2楼201室</span></div></div>
+<div class="co-section"><div class="co-section-title">备注</div><input placeholder="选填，请提前与商户沟通" style="width:100%;height:36px;background:#F7F7F7;border:none;padding:0 12px;font-size:13px;outline:none"></div>
+<div class="section-divider"></div>
+<div class="co-total"><span class="co-total-label">合计</span><span class="co-total-val">¥30.00</span></div>
+<div class="bbar"><button class="btn btn-pri btn-lg btn-block">提交订单</button></div>
+</div>
+<!-- PAGE 8: 订单列表页 -->
+<div class="page" id="page-order-list">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-title">我的订单</span></div></div>
+<div style="display:flex;background:#fff;border-bottom:1px solid #E8E8E8"><div class="tab-btn active">商品</div><div class="tab-btn">服务</div></div>
+<div class="tab-scroll"><button class="tab-chip active">全部</button><button class="tab-chip">待付款</button><button class="tab-chip">待自提</button><button class="tab-chip">待评价</button><button class="tab-chip">已完成</button></div>
+<div style="padding:8px 16px">
+<div class="oc"><div class="oc-shop">老段工作室<span class="oc-status pending">待付款</span></div><div class="oc-body"><div class="oc-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="oc-info"><div class="oc-name">笔记本电脑清灰服务</div><div class="oc-meta">×1</div><div class="oc-price-row"><span class="oc-price">¥50.00</span></div></div></div><div class="oc-acts"><button class="btn btn-out btn-sm">取消订单</button><button class="btn btn-pri btn-sm">去支付</button></div></div>
+<div class="oc"><div class="oc-shop">嘉豪数码<span class="oc-status paid">待自提</span></div><div class="oc-body"><div class="oc-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="oc-info"><div class="oc-name">手机贴膜专业服务</div><div class="oc-meta">×1</div><div class="oc-price-row"><span class="oc-price">¥30.00</span></div></div></div></div>
+</div>
+<div class="tabbar"><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div><div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">消息</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div></div>
+</div>
+<!-- PAGE 14: 登录页 -->
+<div class="page no-tabbar" id="page-login">
+<div class="login-page">
+<div class="login-logo">创</div>
+<div class="login-title">环院创客帮</div>
+<div class="login-illus"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+<button class="login-btn">微信授权登录</button>
+<div class="login-privacy">登录即表示同意《用户协议》和《隐私政策》</div>
+</div>
+</div>
+<!-- PAGE 15: 搜索页 -->
+<div class="page no-tabbar" id="page-search">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><div style="flex:1;height:34px;background:#F7F7F7;display:flex;align-items:center;padding:0 14px;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="搜校园服务或商品" style="flex:1;border:none;background:transparent;font-size:14px;outline:none;color:#000"></div><div class="topnav-action">搜索</div></div></div>
+<div style="padding:12px 16px"><div class="flex flex-between flex-center mb12"><span style="font-size:14px;color:#999">历史搜索</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></div><div class="tag-row" style="padding:0"><span class="tag">笔记本电脑清灰</span><span class="tag">手机贴膜</span><span class="tag">数据恢复</span><span class="tag">系统重装</span></div></div>
+<div style="padding:12px 16px"><div style="font-size:14px;color:#999;margin-bottom:8px">热门搜索</div><div class="tag-row" style="padding:0"><span class="tag" style="border:1px solid #1E3A5F;color:#1E3A5F;background:transparent">校园文创</span><span class="tag">马克杯</span><span class="tag">办公软件</span><span class="tag">二手设备</span><span class="tag">摄影服务</span></div></div>
+<div class="section-divider"></div>
+<div style="display:flex;border-bottom:1px solid #E8E8E8"><button class="tab-chip active">商品</button><button class="tab-chip">店铺</button></div>
+<div class="goods-grid"><div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="goods-body"><div class="goods-title">手机贴膜专业服务</div><div class="goods-price-row"><span class="goods-price">¥30</span></div></div></div><div class="goods-card"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="goods-body"><div class="goods-title">数据恢复专业服务</div><div class="goods-price-row"><span class="goods-price">¥120</span></div></div></div></div>
+</div>
+<!-- PAGE 16: 消息列表页 -->
+<div class="page" id="page-message-list">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-title">消息</span></div></div>
+<div class="msg-item"><div class="msg-avatar">随</div><div class="msg-info"><div class="msg-name">随便科技</div><div class="msg-preview">好的，明天下午2点可以过来取</div></div><div class="msg-right"><div class="msg-time">14:30</div><div class="msg-badge"></div></div></div>
+<div class="msg-item"><div class="msg-avatar">老</div><div class="msg-info"><div class="msg-name">老段工作室</div><div class="msg-preview">数据恢复已完成，请来取机</div></div><div class="msg-right"><div class="msg-time">昨天</div></div></div>
+<div class="msg-item"><div class="msg-avatar">嘉</div><div class="msg-info"><div class="msg-name">嘉豪数码</div><div class="msg-preview">您预约的手机贴膜服务已确认</div></div><div class="msg-right"><div class="msg-time">周一</div></div></div>
+<div class="msg-item"><div class="msg-avatar" style="background:#F7F7F7;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="msg-info"><div class="msg-name">系统通知</div><div class="msg-preview">五一狂欢季活动即将开始</div></div><div class="msg-right"><div class="msg-time">05-04</div></div></div>
+<div class="tabbar"><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div><div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">消息</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div></div>
+</div>
+<!-- PAGE 12: 预约详情页 -->
+<div class="page no-tabbar" id="page-booking-detail">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">预约详情</span></div></div>
+<div class="od-header"><div class="od-header-icon">📋</div><div class="od-header-text" style="color:#FF9500">待确认</div><div class="od-header-sub">商户正在确认您的预约时间</div></div>
+<div class="section-divider"></div>
+<div style="padding:16px 16px 12px"><div style="font-size:17px;color:#000;font-weight:700">数据恢复专业服务</div><div style="font-size:20px;font-weight:700;color:#1E3A5F;margin-top:4px">¥120</div><div style="font-size:13px;color:#999;margin-top:4px">⏱ 约2小时</div></div>
+<div class="detail-shop-row"><div class="detail-shop-logo">老</div><span class="detail-shop-name">老段工作室</span><span class="detail-shop-badge">认证</span><button class="btn btn-out btn-sm" style="margin-left:auto">联系</button></div>
+<div class="od-info" style="margin-top:12px"><div class="od-info-row"><span class="lbl">预约编号</span>No.240505001</div><div class="od-info-row"><span class="lbl">预约日期</span>2024年5月5日 周一</div><div class="od-info-row"><span class="lbl">预约时段</span>09:00 - 10:00</div></div>
+<div class="bbar"><button class="btn btn-out btn-lg" style="flex:1">取消预约</button><button class="btn btn-pri btn-lg" style="flex:1">联系商户</button></div>
+</div>
+<!-- PAGE 13: 个人中心页 -->
+<div class="page" id="page-profile">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="pf-header"><div class="pf-avatar">江</div><div class="pf-info"><div class="pf-name">江胤 <span class="pf-badge">认证用户</span></div></div></div>
+<div class="pf-stats"><div class="pf-stat"><div class="pf-stat-val">5</div><div class="pf-stat-lbl">收藏</div></div><div class="pf-stat"><div class="pf-stat-val">12</div><div class="pf-stat-lbl">关注</div></div><div class="pf-stat"><div class="pf-stat-val">3</div><div class="pf-stat-lbl">订单</div></div></div>
+<div class="pf-order-entry"><div class="pf-order-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>待付款</span></div><div class="pf-order-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4z"/></svg><span>待自提</span></div><div class="pf-order-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>待评价</span></div><div class="pf-order-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg><span>已完成</span></div></div>
+<div class="pf-menu"><div class="pf-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="label">我的订单</span><span class="arrow">›</span></div><div class="pf-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="label">待评价</span><span class="arrow">›</span></div><div class="pf-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="label">收藏</span><span class="arrow">›</span></div><div class="pf-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><path d="M16 21v-2a4 4 0 00-4-4 4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="label">关注</span><span class="arrow">›</span></div><div class="pf-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span class="label">客服</span><span class="arrow">›</span></div><div class="pf-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg><span class="label">商户工作台</span><span class="arrow">›</span></div></div>
+<div class="pf-logout">退出登录</div>
+<div class="tabbar"><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">消息</div></div><div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div></div>
+</div>
+<!-- PAGE 9: 订单详情页 -->
+<div class="page no-tabbar" id="page-order-detail">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">订单详情</span></div></div>
+<div class="od-header"><div class="od-header-icon">📦</div><div class="od-header-text">待自提</div><div class="od-header-sub">请前往店铺出示核销码完成自提</div></div>
+<div class="od-code"><div class="od-code-num">384921</div><div class="od-code-hint">到店出示此码</div></div>
+<div class="section-divider"></div>
+<div class="co-card" style="margin:12px 16px"><div class="co-row"><div class="co-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="co-info"><div class="co-name">手机贴膜专业服务</div><div class="co-spec">规格：高清钢化膜 ×1</div><div class="co-price">¥30.00</div></div></div></div>
+<div class="od-info"><div class="od-info-row"><span class="lbl">订单编号</span>2024050512345678</div><div class="od-info-row"><span class="lbl">下单时间</span>2024-05-05 14:30</div><div class="od-info-row"><span class="lbl">支付方式</span>微信支付</div><div class="od-info-row"><span class="lbl">提货方式</span>到店自提</div></div>
+<div class="bbar"><button class="btn btn-out btn-lg" style="flex:1">联系商户</button><button class="btn btn-pri btn-lg" style="flex:1">确认收货</button></div>
+</div>
+<!-- PAGE 10: 预约确认页 -->
+<div class="page no-tabbar" id="page-booking-confirm">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">确认预约</span></div></div>
+<div class="co-card"><div class="co-row"><div class="co-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="co-info"><div class="co-name">数据恢复专业服务</div><div style="font-size:12px;color:#999;margin-bottom:6px">⏱ 约2小时</div><div class="co-price">¥120</div></div></div></div>
+<div class="co-section"><div class="co-section-title">预约时间</div><div style="display:flex;gap:12px"><span style="font-size:14px;color:#000">📅 5月5日 周一</span><span class="tag" style="background:#1E3A5F;color:#fff">09:00-10:00</span></div></div>
+<div class="co-section"><div class="co-section-title">备注</div><input placeholder="如有特殊需求请备注" style="width:100%;height:36px;background:#F7F7F7;border:none;padding:0 12px;font-size:13px;outline:none"></div>
+<div class="section-divider"></div>
+<div class="co-total"><span class="co-total-label">合计</span><span class="co-total-val">¥120.00</span></div>
+<div class="bbar"><button class="btn btn-pri btn-lg btn-block">确认预约</button></div>
+</div>
+<!-- PAGE 11: 预约列表页 -->
+<div class="page" id="page-booking-list">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-title">我的预约</span></div></div>
+<div class="tab-scroll"><button class="tab-chip active">待支付</button><button class="tab-chip">待确认</button><button class="tab-chip">已确认</button><button class="tab-chip">已完成</button></div>
+<div style="padding:8px 16px">
+<div class="oc"><div class="oc-shop">数据恢复专业服务<span style="font-size:11px;color:#999;font-weight:400"> No.240505001</span><span class="oc-status pending">待支付</span></div><div style="font-size:13px;color:#666;margin:6px 0">📅 5月5日 周一 &nbsp;|&nbsp; ⏰ 09:00-10:00</div><div class="oc-price-row"><span class="oc-price" style="color:#1E3A5F">¥120.00</span></div><div class="oc-acts"><button class="btn btn-out btn-sm">取消</button><button class="btn btn-pri btn-sm">去支付</button></div></div>
+<div class="oc"><div class="oc-shop">系统重装<span style="font-size:11px;color:#999;font-weight:400"> No.240504002</span><span class="oc-status paid">已确认</span></div><div style="font-size:13px;color:#666;margin:6px 0">📅 5月6日 周二 &nbsp;|&nbsp; ⏰ 14:00-15:00</div><div class="oc-price-row"><span class="oc-price" style="color:#1E3A5F">¥80.00</span></div></div>
+</div>
+<div class="tabbar"><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tabbar-text">首页</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="tabbar-text">发现</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div class="tabbar-text">发布</div></div><div class="tabbar-item active"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="tabbar-text">消息</div></div><div class="tabbar-item"><div class="tabbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tabbar-text">我的</div></div></div>
+</div><!-- PAGE 17: 聊天对话页 -->
+<div class="page no-tabbar" id="page-chat">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:center"><div style="width:32px;height:32px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1E3A5F">老</div><span style="font-size:14px;color:#000;font-weight:600">老段工作室</span></div><div style="font-size:11px;color:#666">在线</div></div></div>
+<div class="chat-area" style="padding-bottom:60px">
+<div class="chat-time-label">5月5日 14:30</div>
+<div class="chat-bubble other">您好，请问数据恢复需要多长时间？</div>
+<div class="chat-bubble self">您好！一般需要2小时左右，具体取决于数据量。</div>
+<div class="chat-bubble other">好的，我预约了今天下午3点，可以吗？</div>
+<div class="chat-bubble self">可以的，下午3点准时过来就可以。</div>
+<div class="chat-time-label">14:35</div>
+<div class="chat-bubble self">请带上设备，到了直接来二楼201室。</div>
+</div>
+<div class="chat-input-row"><input class="chat-input" placeholder="输入消息..."><button class="chat-send-btn">发送</button></div>
+</div>
+<!-- PAGE 18: 评价提交页 -->
+<div class="page no-tabbar" id="page-review-submit">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">发表评价</span></div></div>
+<div class="review-product"><div class="review-product-img" style="display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="review-product-name">手机贴膜专业服务</div></div>
+<div class="review-stars"><span class="review-star on">&#9733;</span><span class="review-star on">&#9733;</span><span class="review-star on">&#9733;</span><span class="review-star on">&#9733;</span><span class="review-star on">&#9733;</span></div>
+<textarea class="review-textarea" placeholder="分享您的使用体验，帮助更多同学做出选择"></textarea>
+<div class="review-upload"><div class="review-upload-box">+</div><div class="review-upload-box">+</div><div class="review-upload-box">+</div></div>
+<div class="review-anon"><span>匿名评价</span><div class="toggle"></div></div>
+<div style="padding:12px 16px"><button class="btn btn-pri btn-lg btn-block">提交评价</button></div>
+</div>
+<!-- PAGE 19: 收藏页 -->
+<div class="page no-tabbar" id="page-favorites">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">我的收藏</span></div></div>
+<div class="goods-grid">
+<div class="goods-card" style="position:relative"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="goods-body"><div class="goods-title">笔记本电脑清灰服务</div><div class="goods-price-row"><span class="goods-price">¥50</span></div></div><div style="position:absolute;top:8px;right:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FF3B30" stroke="#FF3B30" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div></div>
+<div class="goods-card" style="position:relative"><div class="goods-img"><svg viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="goods-body"><div class="goods-title">手机贴膜专业服务</div><div class="goods-price-row"><span class="goods-price">¥30</span></div></div><div style="position:absolute;top:8px;right:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FF3B30" stroke="#FF3B30" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div></div>
+</div>
+</div>
+<!-- PAGE 20: 关注页 -->
+<div class="page no-tabbar" id="page-follows">
+<div class="status-bar" style="background:#fff"><span>9:41</span><span>📶 🔋</span></div>
+<div class="topnav"><div class="topnav-row"><span class="topnav-back"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></span><span class="topnav-title">我的关注</span></div></div>
+<div style="padding:8px 16px">
+<div class="feat-card" style="margin-bottom:8px"><div style="width:40px;height:40px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#1E3A5F;flex-shrink:0">老</div><div class="feat-info"><div class="feat-name">老段工作室</div><div style="font-size:11px;color:#999;margin-top:1px">★ 5.0 · 粉丝 326</div></div><button class="btn btn-out btn-sm">已关注</button></div>
+<div class="feat-card" style="margin-bottom:8px"><div style="width:40px;height:40px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#1E3A5F;flex-shrink:0">嘉</div><div class="feat-info"><div class="feat-name">嘉豪数码</div><div style="font-size:11px;color:#999;margin-top:1px">★ 5.0 · 粉丝 218</div></div><button class="btn btn-out btn-sm">已关注</button></div>
+<div class="feat-card"><div style="width:40px;height:40px;border-radius:50%;background:#F7F7F7;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#1E3A5F;flex-shrink:0">随</div><div class="feat-info"><div class="feat-name">随便科技</div><div style="font-size:11px;color:#999;margin-top:1px">★ 4.8 · 粉丝 152</div></div><button class="btn btn-out btn-sm">已关注</button></div>
+</div>
+</div>
+</div></div></div>
+<script>
+(function(){var pages=document.querySelectorAll('.page');var navItems=document.querySelectorAll('.nav-item');var title=document.getElementById('viewportTitle');var screen=document.getElementById('phoneScreen');function showPage(id){pages.forEach(function(p){p.classList.remove('active')});var page=document.getElementById('page-'+id);if(page){page.classList.add('active');screen.scrollTop=0}navItems.forEach(function(n){n.classList.remove('active')});var nav=document.querySelector('.nav-item[data-page="'+id+'"]');if(nav){nav.classList.add('active');title.textContent=nav.textContent.trim().replace(/^[^\s]+\s/,'')}}navItems.forEach(function(item){item.addEventListener('click',function(){showPage(this.dataset.page)})})})();
+</script>
+</body>
+</html>
